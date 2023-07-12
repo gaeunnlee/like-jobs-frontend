@@ -14,9 +14,23 @@ import { useEffect } from "react";
 export default function Router() {
   const token = useRecoilValue(LoginStateAtom);
 
-  useEffect(() => {
-    fetch("/recruit/").then((response) => console.log(response.body));
-  }, []);
+  // useEffect(() => {
+  //   fetch('/auth/member/login',{
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({
+  //       username: "user1",
+  //       password: "user1",
+  //     }),
+  //   })
+  // .then(function(response) {
+  //   return response.text();
+  // }).then(function(data) {
+  //   console.log(data); // this will be a string
+  // });
+  // }, []);
   return (
     <BrowserRouter>
       <Nav />
@@ -25,12 +39,11 @@ export default function Router() {
         <Route
           path="/my-page"
           element={
-            token.authority === "user" ? <UserMyPage /> : <CompanyMyPage />
+            token.authority === "ROLE_USER" ? <UserMyPage /> : <CompanyMyPage />
           }
         />
-        <Route path="/resume" element={<ResumeEditor />} />
         <Route path="/post/recruit" element={<RecruitEditor />} />
-        <Route path="/recruit/:id" element={<RecruitDetail />} />
+        <Route path="/recruit/:id" element={<ResumeEditor />} />
       </Routes>
     </BrowserRouter>
   );

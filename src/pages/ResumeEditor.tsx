@@ -1,8 +1,8 @@
 import { styled } from "styled-components";
 import { ImUser } from "react-icons/im";
 import { UserInfo } from "../static/data/UserInfo";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { LoginStateAtom } from "../state/LoginState";
 
@@ -135,46 +135,121 @@ const Input = styled.input`
     transition: 0.5s;
   }
 `;
-const Textarea = styled.textarea`
-  border: 0;
-  height: 150px;
-  font-size: 17px;
-  resize: none;
-  &:focus {
-    outline: 0;
-  }
-`;
-const Select = styled.select`
-  width: 200px;
-  padding: 15px;
+
+const AddCareerButton = styled.button`
+  background-color: ${(props) => props.theme.primary};
+  width: 100px;
+  color: #fff;
+  padding: 10px;
   border-radius: 10px;
-  font-size: 17px;
-  border: 1.5px solid #dcdcdc;
-  &:focus {
-    border: 1.5px solid ${(props) => props.theme.primary};
-    outline: 0;
-  }
-  option {
-    padding: 10px;
-  }
+  display: flex;
+  align-self: end;
+  text-align: center;
+  justify-content: center;
 `;
+
+const CareerItem = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+const CareerDate = styled.span``;
+const CareerCompany = styled.span``;
+interface UserInfoProps {
+  authority: string;
+  username: string;
+  password: string;
+  name: string;
+  gender: string;
+  phoneNumber: string;
+  email: string;
+  education: string;
+  university: string;
+  major: string;
+}
+
+interface CareerProps {
+  startdate: string;
+  quitdate: string;
+  companyname: string;
+}
+
+interface ResumeInfoProps {
+  recruitTitle: string;
+  careerList: CareerProps[];
+}
+
 export default function ResumeEditor() {
-  const token = useRecoilValue(LoginStateAtom)
+  const token = useRecoilValue(LoginStateAtom);
+  const [userInfo, setUserInfo] = useState<UserInfoProps>();
+  const [careerList, setCareerList] = useState<CareerProps[]>([]);
+  const [careerItem, setCareerItem] = useState<CareerProps>({
+    startdate: "",
+    quitdate: "",
+    companyname: "",
+  });
+  const [resumeInfo, setResumeInfo] = useState<ResumeInfoProps>();
+
   const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
+    setResumeInfo((prev:any) => {
+      return { ...prev, recruitTitle: location.state.title };
+    });
     if (!token.state) {
       navigate("/");
     }
+    fetch("/member/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token.accessToken}`,
+      },
+    })
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        console.log(data);
+        setUserInfo(data);
+      });
   }, []);
+
+  const handleAddCareer = (e: React.MouseEvent<HTMLButtonElement>) => {
+    careerList.push(careerItem);
+    setCareerItem({
+      startdate: "",
+      quitdate: "",
+      companyname: "",
+    });
+    setResumeInfo((prev:any)=>{return({...prev, careerList: careerList})})
+  };
   const handleSaveResume = () => {
-    alert("등록되었습니다");
-    navigate("/my-page");
+    
+    fetch("/member/resume/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token.accessToken}`,
+      },
+      body: JSON.stringify(resumeInfo),
+    })
+      .then(function (response) {
+        return response.text();
+      })
+      .then(function (data) {
+        console.log(data);
+
+        alert("등록되었습니다");
+        navigate("/");
+      });
+
   };
   return (
     <Wrapper>
       <Container>
         <InfoContainer>
-          <PageTitle>이력서 수정</PageTitle>
+          <PageTitle>이력서 등록</PageTitle>
           <BoxesContainer>
             <BoxContainer>
               <BoxTitle>기본 정보</BoxTitle>
@@ -184,14 +259,14 @@ export default function ResumeEditor() {
                 </ProfileWrapper>
                 <TextInfoContainer>
                   <BasicInfo>
-                    <Name>{UserInfo.name}</Name>
+                    <Name>{userInfo?.name}</Name>
                     <GenderAge>
-                      {UserInfo.gender} {UserInfo.age}세 / {UserInfo.birth}년생
+                      {userInfo?.gender === "male" ? "남자" : "여자"}
                     </GenderAge>
                   </BasicInfo>
                   <InfoItem>
                     <InfoName>연락처</InfoName>
-                    <InfoDesc>{UserInfo.phoneNumber}</InfoDesc>
+                    <InfoDesc>{userInfo?.phoneNumber}</InfoDesc>
                   </InfoItem>
                   <InfoItem>
                     <InfoName>이메일</InfoName>
@@ -203,25 +278,65 @@ export default function ResumeEditor() {
             <BoxContainer>
               <BoxTitle>학력</BoxTitle>
               <Box>
-                <Select name="education">
-                  <option>초등학교 졸업</option>
-                  <option>중학교 졸업</option>
-                  <option>고등학교 졸업</option>
-                  <option>대학교 졸업</option>
-                </Select>
-                <Input type="text" placeholder="학교명 학과명" />
+                <Accent>
+                  {userInfo?.education === "UNIVERSITY"
+                    ? "대학교 졸업"
+                    : "고등학교 졸업"}
+                </Accent>
+                <Desc>{userInfo?.university}</Desc>
               </Box>
             </BoxContainer>
             <BoxContainer>
               <BoxTitle>경력</BoxTitle>
               <Box>
-                <Input type="text" placeholder="경력" />
-              </Box>
-            </BoxContainer>
-            <BoxContainer>
-              <BoxTitle>자기소개서</BoxTitle>
-              <Box>
-                <Textarea placeholder="자기소개서" />
+                {careerList.map((item) => {
+                  return (
+                    <CareerItem>
+                      <CareerDate>
+                        {item.startdate} ~ {item.quitdate}
+                      </CareerDate>
+                      <CareerCompany>{item.companyname}</CareerCompany>
+                    </CareerItem>
+                  );
+                })}
+                <hr />
+                <Input
+                  type="text"
+                  placeholder="시작 (ex. 2021-11)"
+                  value={careerItem.startdate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setCareerItem((prev) => {
+                      return { ...prev, startdate: e.target.value };
+                    });
+                  }}
+                />
+                <Input
+                  type="text"
+                  placeholder="종료 (ex. 2023-04)"
+                  value={careerItem.quitdate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setCareerItem((prev) => {
+                      return { ...prev, quitdate: e.target.value };
+                    });
+                  }}
+                />
+                <Input
+                  type="text"
+                  placeholder="회사명"
+                  value={careerItem.companyname}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setCareerItem((prev) => {
+                      return { ...prev, companyname: e.target.value };
+                    });
+                  }}
+                />
+                <AddCareerButton
+                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    handleAddCareer(e);
+                  }}
+                >
+                  추가
+                </AddCareerButton>
               </Box>
             </BoxContainer>
           </BoxesContainer>

@@ -2,7 +2,7 @@ import { styled } from "styled-components";
 import { ImUser } from "react-icons/im";
 import { UserInfo } from "../static/data/UserInfo";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { LoginStateAtom } from "../state/LoginState";
 
@@ -158,8 +158,24 @@ const Select = styled.select`
     padding: 10px;
   }
 `;
+
+interface PostProps {
+  companyName: string;
+  title: string;
+  job: string;
+  education: string;
+  career: string;
+}
+
 export default function RecruitEditor() {
-  const token = useRecoilValue(LoginStateAtom)
+  const token = useRecoilValue(LoginStateAtom);
+  const [post, setPost] = useState<PostProps>({
+    title: "",
+    companyName: "",
+    education: "",
+    job: "ENTERPRISE",
+    career: "",
+  });
   const navigate = useNavigate();
   useEffect(() => {
     if (!token.state) {
@@ -167,8 +183,23 @@ export default function RecruitEditor() {
     }
   }, []);
   const handlePost = () => {
-    alert("등록되었습니다");
-    navigate("/my-page");
+    fetch("/recruit/new", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token.accessToken}`,
+      },
+      body: JSON.stringify(post),
+    })
+      .then(function (response) {
+        return response.text();
+      })
+      .then(function (data) {
+        console.log(data);
+
+        alert("등록되었습니다");
+        navigate("/my-page");
+      });
   };
   return (
     <Wrapper>
@@ -176,28 +207,82 @@ export default function RecruitEditor() {
         <InfoContainer>
           <PageTitle>채용공고 업로드</PageTitle>
           <BoxesContainer>
-          <BoxContainer>
+            <BoxContainer>
+              <BoxTitle>회사명</BoxTitle>
+              <Box>
+                <Input
+                  type="text"
+                  placeholder="회사명"
+                  value={post.companyName}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setPost((prev) => {
+                      return { ...prev, companyName: e.target.value };
+                    });
+                  }}
+                />
+              </Box>
+            </BoxContainer>
+            <BoxContainer>
               <BoxTitle>제목</BoxTitle>
               <Box>
-                <Input type="text" placeholder="제목" />
+                <Input
+                  type="text"
+                  placeholder="제목"
+                  value={post.title}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setPost((prev) => {
+                      return { ...prev, title: e.target.value };
+                    });
+                  }}
+                />
+              </Box>
+            </BoxContainer>
+            <BoxContainer>
+              <BoxTitle>분야</BoxTitle>
+              <Box>
+                <Select
+                  name="career"
+                  value={post.job}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                    setPost((prev) => {
+                      return { ...prev, job: e.target.value };
+                    });
+                  }}
+                >
+                  <option value="ENTERPRISE">기획</option>
+                  <option value="DESIGN">디자인</option>
+                  <option value="MARKETING">마케팅</option>
+                  <option value="ENGINEERING">엔지니어링</option>
+                  <option value="FOOD">식·음료</option>
+                  <option value="EDUCATION">교육</option>
+                </Select>
               </Box>
             </BoxContainer>
             <BoxContainer>
               <BoxTitle>지원 자격</BoxTitle>
               <Box>
-                <Select name="education">
-                  <option>초등학교 졸업</option>
-                  <option>중학교 졸업</option>
-                  <option>고등학교 졸업</option>
-                  <option>대학교 졸업</option>
+                <Select
+                  name="education"
+                  value={post.education}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                    setPost((prev) => {
+                      return { ...prev, education: e.target.value };
+                    });
+                  }}
+                >
+                  <option value="HIGH_SCHOOL">고등학교 졸업</option>
+                  <option value="UNIVERSITY">대학교 졸업</option>
                 </Select>
-                <Input type="text" placeholder="경력" />
-              </Box>
-            </BoxContainer>
-            <BoxContainer>
-              <BoxTitle>상세 내용</BoxTitle>
-              <Box>
-                <Textarea placeholder="상세 내용" />
+                <Input
+                  type="text"
+                  placeholder="경력"
+                  value={post.career}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setPost((prev) => {
+                      return { ...prev, career: e.target.value };
+                    });
+                  }}
+                />
               </Box>
             </BoxContainer>
           </BoxesContainer>

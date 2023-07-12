@@ -81,19 +81,20 @@ const SignUpButton = styled.input`
 const LoginButton = styled.button``;
 
 interface PersonSignUpProps {
-  id: string;
+  username: string;
   password: string;
-  user: string;
-  phoneNumber: string;
   name: string;
-  email: string;
   gender: string;
+  phoneNumber: string;
+  email: string;
+  education: string;
+  university: string;
+  major: string;
 }
 interface CompanySignUpProps {
-  user: string;
-  id: string;
+  companyId: string;
   password: string;
-  companyNumber: string;
+  registNum: number;
   companyName: string;
 }
 export default function SignUp({
@@ -103,28 +104,58 @@ export default function SignUp({
 }) {
   const [userType, setUserType] = useState("개인");
   const [personSignUpInfo, setPersonSignUpInfo] = useState<PersonSignUpProps>({
-    user: "person",
-    id: "",
+    username: "",
     password: "",
     phoneNumber: "",
     name: "",
     email: "",
     gender: "",
+    major: "",
+    education: "",
+    university: "",
   });
   const [companySignUpInfo, setCompanySignUpInfo] =
     useState<CompanySignUpProps>({
-      user: "company",
-      id: "",
+      companyId: "",
       password: "",
-      companyNumber: "",
+      registNum: 0,
       companyName: "",
     });
   const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(personSignUpInfo);
-    console.log(companySignUpInfo);
-    isActiveModal("SignUp",false);
-    alert("가입이 완료되었습니다")
+    if (userType ==="개인") {
+      fetch("/auth/member/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(personSignUpInfo),
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          console.log(data);
+          isActiveModal("SignUp", false);
+          alert("가입이 완료되었습니다");
+        });
+    } else {
+      fetch("/auth/company/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(companySignUpInfo),
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          console.log(data);
+          isActiveModal("SignUp", false);
+          alert("가입이 완료되었습니다");
+        });
+    }
   };
   const isActiveModal = (type: string, isActive: boolean) => {
     handleOpenModal(type, isActive);
@@ -134,19 +165,20 @@ export default function SignUp({
     e.currentTarget.classList.add("checked");
     setUserType(e.currentTarget.innerText);
     setPersonSignUpInfo({
-      user: "person",
-      id: "",
+      username: "",
       password: "",
       phoneNumber: "",
       name: "",
       email: "",
       gender: "",
+      major: "",
+      education: "",
+      university: "",
     });
     setCompanySignUpInfo({
-      user: "company",
-      id: "",
+      companyId: "",
       password: "",
-      companyNumber: "",
+      registNum: 0,
       companyName: "",
     });
   };
@@ -207,10 +239,10 @@ export default function SignUp({
             <IdInput
               type="text"
               placeholder="아이디"
-              value={personSignUpInfo.id}
+              value={personSignUpInfo.username}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setPersonSignUpInfo((prev) => {
-                  return { ...prev, id: e.target.value };
+                  return { ...prev, username: e.target.value };
                 })
               }
             />
@@ -243,6 +275,36 @@ export default function SignUp({
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setPersonSignUpInfo((prev) => {
                   return { ...prev, email: e.target.value };
+                })
+              }
+            />
+            <IdInput
+              type="text"
+              placeholder="학력"
+              value={personSignUpInfo.education}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPersonSignUpInfo((prev) => {
+                  return { ...prev, education: e.target.value };
+                })
+              }
+            />
+            <IdInput
+              type="text"
+              placeholder="학교"
+              value={personSignUpInfo.university}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPersonSignUpInfo((prev) => {
+                  return { ...prev, university: e.target.value };
+                })
+              }
+            />
+            <IdInput
+              type="text"
+              placeholder="전공"
+              value={personSignUpInfo.major}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPersonSignUpInfo((prev) => {
+                  return { ...prev, major: e.target.value };
                 })
               }
             />
@@ -288,10 +350,10 @@ export default function SignUp({
             <IdInput
               type="text"
               placeholder="아이디"
-              value={companySignUpInfo.id}
+              value={companySignUpInfo.companyId}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setCompanySignUpInfo((prev) => {
-                  return { ...prev, id: e.target.value };
+                  return { ...prev, companyId: e.target.value };
                 })
               }
             />
@@ -305,13 +367,14 @@ export default function SignUp({
                 })
               }
             />
+            <p>사업자등록번호</p>
             <IdInput
               type="number"
               placeholder="사업자등록번호"
-              value={companySignUpInfo.companyNumber}
+              value={companySignUpInfo.registNum}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setCompanySignUpInfo((prev) => {
-                  return { ...prev, companyNumber: e.target.value };
+                  return { ...prev, registNum: Number(e.target.value) };
                 })
               }
             />

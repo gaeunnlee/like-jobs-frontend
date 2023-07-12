@@ -74,7 +74,6 @@ const SignUpButton = styled.button``;
 interface LoginProps {
   username: string;
   password: string;
-  user: string;
 }
 
 export default function Login({
@@ -87,7 +86,6 @@ export default function Login({
   const token = useRecoilValue(LoginStateAtom);
   const [loginSuccesss, setLoginSuccess] = useState(false);
   const [loginInfo, setLoginInfo] = useState<LoginProps>({
-    user: "person",
     username: "",
     password: "",
   });
@@ -98,29 +96,53 @@ export default function Login({
     e.preventDefault();
     if (loginInfo.username.length > 0 && loginInfo.password.length > 0) {
       if (userType === "개인") {
-        fetch("/recruit/").then((response) => console.log(response.body));
+        fetch("/auth/member/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(loginInfo),
+        })
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            console.log(data);
+            setLogin(data)
+            setLogin((prev:any)=> {return {
+              ...prev,
+              state: true
+            }})
+            isActiveModal("Login", false);
+            alert("로그인 완료");
+          });
 
-        setLogin((prev: any) => {
-          return {
-            ...prev,
-            authority: "user",
-          };
-        });
+        
       } else {
-        setLogin((prev: any) => {
-          return {
-            ...prev,
-            authority: "company",
-          };
-        });
+        fetch("/auth/company/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            "companyId": loginInfo.username,
+            "password": loginInfo.password
+          }),
+        })
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            console.log(data);
+            setLogin(data)
+            setLogin((prev:any)=> {return {
+              ...prev,
+              state: true
+            }})
+            isActiveModal("Login", false);
+            alert("로그인 완료");
+          });
       }
-      setLogin((prev: any) => {
-        return {
-          ...prev,
-          state: true,
-        };
-      });
-      isActiveModal("Login", false);
     } else {
       alert("아이디 또는 비밀번호를 입력해주세요");
     }

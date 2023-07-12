@@ -4,7 +4,7 @@ import { UserInfo } from "../static/data/UserInfo";
 import { Link, useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { LoginStateAtom } from "../state/LoginState";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Wrapper = styled.div`
   display: flex;
@@ -125,14 +125,56 @@ const ResumeModifyButton = styled(Link)`
   border-radius: 10px;
 `;
 
+interface UserInfoProps {
+  authority: string;
+  username: string;
+  password: string;
+  name: string;
+  gender: string;
+  phoneNumber: string;
+  email: string;
+  education: string;
+  university: string;
+  major: string;
+}
+
 export default function UserMyPage() {
-    const token = useRecoilValue(LoginStateAtom)
-    const navigate = useNavigate();
-    useEffect(()=>{
-        if (!token.state) {
-            navigate('/')
-        }
-    },[])
+  const token = useRecoilValue(LoginStateAtom);
+  const [userInfo, setUserInfo] = useState<UserInfoProps>()
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!token.state) {
+      navigate("/");
+    }
+    fetch("/member/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token.accessToken}`,
+      },
+    })
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        console.log(data);
+        setUserInfo(data)
+      });
+      fetch("/recruit/me", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.accessToken}`,
+        },
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          console.log(data);
+        });
+  }, []);
   return (
     <Wrapper>
       <Container>
@@ -147,18 +189,18 @@ export default function UserMyPage() {
                 </ProfileWrapper>
                 <TextInfoContainer>
                   <BasicInfo>
-                    <Name>{UserInfo.name}</Name>
+                    <Name>{userInfo?.name}</Name>
                     <GenderAge>
-                      {UserInfo.gender} {UserInfo.age}세 / {UserInfo.birth}년생
+                      {userInfo?.gender==="male"?"남자":"여자"}
                     </GenderAge>
                   </BasicInfo>
                   <InfoItem>
                     <InfoName>연락처</InfoName>
-                    <InfoDesc>{UserInfo.phoneNumber}</InfoDesc>
+                    <InfoDesc>{userInfo?.phoneNumber}</InfoDesc>
                   </InfoItem>
                   <InfoItem>
                     <InfoName>이메일</InfoName>
-                    <InfoDesc>{UserInfo.email}</InfoDesc>
+                    <InfoDesc>{userInfo?.email}</InfoDesc>
                   </InfoItem>
                 </TextInfoContainer>
               </MyInfoBox>
@@ -166,27 +208,15 @@ export default function UserMyPage() {
             <BoxContainer>
               <BoxTitle>학력</BoxTitle>
               <Box>
-                <Accent>{UserInfo.education}</Accent>
-                <Desc>{UserInfo.school}</Desc>
-              </Box>
-            </BoxContainer>
-            <BoxContainer>
-              <BoxTitle>경력</BoxTitle>
-              <Box>
-                <Accent>{UserInfo.career}</Accent>
-              </Box>
-            </BoxContainer>
-            <BoxContainer>
-              <BoxTitle>자기소개서</BoxTitle>
-              <Box>
-                <Desc>{UserInfo.introduction}</Desc>
+                <Accent>{userInfo?.education==="UNIVERSITY"?"대학교 졸업":"고등학교 졸업"}</Accent>
+                <Desc>{userInfo?.university}</Desc>
               </Box>
             </BoxContainer>
           </BoxesContainer>
         </InfoContainer>
-        <ButtonsContainer>
+        {/* <ButtonsContainer>
           <ResumeModifyButton to="/resume">이력서 수정하기</ResumeModifyButton>
-        </ButtonsContainer>
+        </ButtonsContainer> */}
       </Container>
     </Wrapper>
   );

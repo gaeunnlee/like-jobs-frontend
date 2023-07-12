@@ -4,7 +4,7 @@ import { CompanyInfo } from "../static/data/CompanyInfo";
 import { Link, useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { LoginStateAtom } from "../state/LoginState";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Wrapper = styled.div`
   display: flex;
@@ -125,14 +125,60 @@ const ResumeModifyButton = styled(Link)`
   border-radius: 10px;
 `;
 
+interface CompanyProps {
+  companyId: string;
+  companyName: string;
+  authority: string;
+}
+
+interface RecruitPostsProps {
+  career: string,
+  company: {},
+  education: string,
+  id: number,
+  job: string,
+  title: string,
+}
+
 export default function CompanyMyPage() {
-    const token = useRecoilValue(LoginStateAtom)
-    const navigate = useNavigate();
-    useEffect(()=>{
-        if (!token.state) {
-            navigate('/')
-        }
-    },[])
+  const token = useRecoilValue(LoginStateAtom);
+  const [companyInfo, setCompanyInfo] = useState<CompanyProps>();
+  const [recruitPosts, setRecruitPosts] = useState<RecruitPostsProps[]>()
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!token.state) {
+      navigate("/");
+    }
+
+    fetch("/company/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token.accessToken}`,
+      },
+    })
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        console.log(data);
+        setCompanyInfo(data)
+      });
+      fetch("/recruit/me", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.accessToken}`,
+        },
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          console.log(data);
+          setRecruitPosts(data)
+        });
+  }, []);
   return (
     <Wrapper>
       <Container>
@@ -144,28 +190,29 @@ export default function CompanyMyPage() {
               <MyInfoBox>
                 <TextInfoContainer>
                   <BasicInfo>
-                    <Name>{CompanyInfo.companyName}</Name>
+                    <Name>{companyInfo?.companyName}</Name>
                   </BasicInfo>
-                  <InfoItem>
+                  {/* <InfoItem>
                     <InfoName>사업자등록번호</InfoName>
                     <InfoDesc>{CompanyInfo.companyNumber}</InfoDesc>
-                  </InfoItem>
+                  </InfoItem> */}
                 </TextInfoContainer>
               </MyInfoBox>
             </BoxContainer>
             <BoxContainer>
               <BoxTitle>채용 공고</BoxTitle>
               <Box>
-                {CompanyInfo.recruitPosts.map((item) => {return(
-                  <Desc>{item}</Desc>
-                )})}
-                
+                {recruitPosts?.map((item) => {
+                  return <Desc>{item.title}</Desc>;
+                })}
               </Box>
             </BoxContainer>
           </BoxesContainer>
         </InfoContainer>
         <ButtonsContainer>
-          <ResumeModifyButton to="/post/recruit">채용 공고 업로드</ResumeModifyButton>
+          <ResumeModifyButton to="/post/recruit">
+            채용 공고 업로드
+          </ResumeModifyButton>
         </ButtonsContainer>
       </Container>
     </Wrapper>

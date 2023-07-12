@@ -1,18 +1,17 @@
-import { atom } from 'recoil';
-import { recoilPersist } from 'recoil-persist';
+import { atom } from "recoil";
+import { recoilPersist } from "recoil-persist";
 
 const { persistAtom } = recoilPersist();
 
 export const LoginStateAtom = atom({
-  key: 'LoginState',
+  key: "LoginState",
   default: {
     state: false,
-    authority: '',
-    // accessToken: '',
-    // refreshToken: '',
-    // studentId: '',
-    // name: '',
-    // teamName: '',
+    authority: "",
+    accessToken: "",
+    accessTokenExpiresIn: 1689147677786,
+    grantType: "",
+    refreshToken: ""
   },
   effects_UNSTABLE: [persistAtom],
 });

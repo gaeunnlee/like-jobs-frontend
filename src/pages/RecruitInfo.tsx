@@ -4,12 +4,14 @@ import { recruitPost } from "../static/data/recruitPost";
 import { useRecoilValue } from "recoil";
 import { LoginStateAtom } from "../state/LoginState";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const Wrapper = styled.div`
   display: flex;
   justify-content: center;
   background-color: ${(props) => props.theme.bgColor};
   padding: 20px 0;
+  height: 100vh;
 `;
 
 const Container = styled.div`
@@ -55,11 +57,10 @@ const RecruitPostTagContainer = styled.div`
   gap: 5px;
 `;
 const RecruitPostTag = styled.span`
-   background-color: #f4f6fa;
-   color: #373f57;
-   font-size: 14px;
-   padding: 4px;
-;
+  background-color: #f4f6fa;
+  color: #373f57;
+  font-size: 14px;
+  padding: 4px;
 `;
 const ApplyButton = styled(Link)`
   align-self: flex-end;
@@ -67,10 +68,25 @@ const ApplyButton = styled(Link)`
   color: #875050;
   padding: 3px 6px;
   border-radius: 3px;
-`
-
+`;
+interface PostProps {
+  id: number;
+  company: {
+    id: number;
+    companyId: string;
+    password: string;
+    registNum: number;
+    companyName: string;
+    authority: string;
+  };
+  title: string;
+  job: string;
+  education: string;
+  career: string;
+}
 export default function RecruitInfo() {
   const token = useRecoilValue(LoginStateAtom);
+  const [recruitPosts, setRecruitPosts] = useState<PostProps[]>();
 
   const handleCategoryClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     document
@@ -78,6 +94,21 @@ export default function RecruitInfo() {
       ?.classList.remove("selectedCategory");
     e.currentTarget.classList.add("selectedCategory");
   };
+
+  useEffect(() => {
+    fetch("/recruit/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        setRecruitPosts(data.content);
+      });
+  }, []);
   return (
     <Wrapper>
       <Container>
@@ -96,17 +127,24 @@ export default function RecruitInfo() {
           })}
         </CategoryContainer>
         <RecruitPostContainer>
-          {recruitPost.map((item) => {
+          {recruitPosts?.map((item) => {
             return (
               <RecruitPostItem>
-                <RecruitPostCompany>{item.companyName}</RecruitPostCompany>
+                <RecruitPostCompany>
+                  {item.company.companyName}
+                </RecruitPostCompany>
                 <RecruitPostTagContainer>
                   <RecruitPostTag>{item.education}</RecruitPostTag>
                   <RecruitPostTag>{item.career}</RecruitPostTag>
                 </RecruitPostTagContainer>
                 <RecruitPostTitle>{item.title}</RecruitPostTitle>
-                <ApplyButton to={`/recruit/${item.postId}`}>
-                  {token.authority === "user" ? "지원하기" : "→"}
+                <ApplyButton
+                  to={`/recruit/${item.id}`}
+                  state ={{
+                    title: item.title
+                  }}
+                >
+                  {token.authority === "ROLE_USER" ? "지원하기" : "→"}
                 </ApplyButton>
               </RecruitPostItem>
             );
