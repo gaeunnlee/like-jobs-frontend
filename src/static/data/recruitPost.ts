@@ -1,5 +1,6 @@
 export const recruitPost = [
-  {
+  { 
+    postId: 1,
     companyName: "GS네트웍스", //회사 이름
     title: "GS25 점포영업담당 채용", //공고문 제목
     job: "enterprise", // 직종(enterprise/design/marketing/engineering/food/educate)

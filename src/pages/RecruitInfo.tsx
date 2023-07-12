@@ -3,6 +3,7 @@ import { recruitInfo } from "../static/data/recruitInfo";
 import { recruitPost } from "../static/data/recruitPost";
 import { useRecoilValue } from "recoil";
 import { LoginStateAtom } from "../state/LoginState";
+import { Link } from "react-router-dom";
 
 const Wrapper = styled.div`
   display: flex;
@@ -60,7 +61,7 @@ const RecruitPostTag = styled.span`
    padding: 4px;
 ;
 `;
-const ApplyButton = styled.button`
+const ApplyButton = styled(Link)`
   align-self: flex-end;
   border: 1px solid #875050;
   color: #875050;
@@ -104,7 +105,7 @@ export default function RecruitInfo() {
                   <RecruitPostTag>{item.career}</RecruitPostTag>
                 </RecruitPostTagContainer>
                 <RecruitPostTitle>{item.title}</RecruitPostTitle>
-                <ApplyButton>
+                <ApplyButton to={`/recruit/${item.postId}`}>
                   {token.authority === "user" ? "지원하기" : "→"}
                 </ApplyButton>
               </RecruitPostItem>

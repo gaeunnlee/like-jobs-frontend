@@ -8,9 +8,15 @@ import UserMyPage from "./pages/UserMyPage";
 import ResumeEditor from "./pages/ResumeEditor";
 import CompanyMyPage from "./pages/CompanyMyPage";
 import RecruitEditor from "./pages/RecruitEditor";
+import RecruitDetail from "./pages/RecruitDetail";
+import { useEffect } from "react";
 
 export default function Router() {
   const token = useRecoilValue(LoginStateAtom);
+
+  useEffect(() => {
+    fetch("/recruit/").then((response) => console.log(response.body));
+  }, []);
   return (
     <BrowserRouter>
       <Nav />
@@ -24,6 +30,7 @@ export default function Router() {
         />
         <Route path="/resume" element={<ResumeEditor />} />
         <Route path="/post/recruit" element={<RecruitEditor />} />
+        <Route path="/recruit/:id" element={<RecruitDetail />} />
       </Routes>
     </BrowserRouter>
   );

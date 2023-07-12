@@ -72,7 +72,7 @@ const LoginButton = styled.input`
 const SignUpButton = styled.button``;
 
 interface LoginProps {
-  id: string;
+  username: string;
   password: string;
   user: string;
 }
@@ -85,10 +85,10 @@ export default function Login({
   const [userType, setUserType] = useState("개인");
   const setLogin = useSetRecoilState(LoginStateAtom);
   const token = useRecoilValue(LoginStateAtom);
-  const [loginSuccesss, setLoginSuccess] = useState(false)
+  const [loginSuccesss, setLoginSuccess] = useState(false);
   const [loginInfo, setLoginInfo] = useState<LoginProps>({
     user: "person",
-    id: "",
+    username: "",
     password: "",
   });
   const isActiveModal = (type: string, isActive: boolean) => {
@@ -96,8 +96,10 @@ export default function Login({
   };
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (loginInfo.id.length > 0 && loginInfo.password.length > 0) {
+    if (loginInfo.username.length > 0 && loginInfo.password.length > 0) {
       if (userType === "개인") {
+        fetch("/recruit/").then((response) => console.log(response.body));
+
         setLogin((prev: any) => {
           return {
             ...prev,
@@ -169,7 +171,7 @@ export default function Login({
           placeholder="아이디"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setLoginInfo((prev) => {
-              return { ...prev, id: e.target.value };
+              return { ...prev, username: e.target.value };
             })
           }
         />
